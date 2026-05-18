@@ -1,325 +1,191 @@
-# 🛡️ pfSense Suricata IDS/IPS Setup Guide
+# Suricata IDS/IPS Setup on pfSense
 
-A step-by-step guide to installing and configuring **Suricata** as an Intrusion Detection System (IDS) and Intrusion Prevention System (IPS) on **pfSense Community Edition**. This setup monitors both WAN and LAN interfaces, detects network threats, and automatically blocks malicious hosts.
+A step-by-step guide to installing and configuring **Suricata** as an Intrusion Detection System (IDS) and Intrusion Prevention System (IPS) on **pfSense**. This lab demonstrates how to detect and block network threats — including Nmap scans — from an external Kali Linux machine targeting an internal Ubuntu machine.
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Configuration](#configuration)
-  - [Step 1 – Navigate to Package Manager](#step-1--navigate-to-package-manager)
-  - [Step 2 – Access Suricata via Services](#step-2--access-suricata-via-services)
-  - [Step 3 – Add WAN Interface](#step-3--add-wan-interface)
-  - [Step 4 – Configure WAN General Settings](#step-4--configure-wan-general-settings)
-  - [Step 5 – Configure Alert & Block Settings (WAN)](#step-5--configure-alert--block-settings-wan)
-  - [Step 6 – Save the WAN Interface](#step-6--save-the-wan-interface)
-  - [Step 7 – Add LAN Interface](#step-7--add-lan-interface)
-  - [Step 8 – Configure LAN General Settings](#step-8--configure-lan-general-settings)
-  - [Step 9 – Configure Alert & Block Settings (LAN)](#step-9--configure-alert--block-settings-lan)
-  - [Step 10 – Configure Global Settings & Rules](#step-10--configure-global-settings--rules)
-  - [Step 11 – Set Block Interval & Logging Options](#step-11--set-block-interval--logging-options)
-  - [Step 12 – Update Rule Sets](#step-12--update-rule-sets)
 - [Testing the IDS/IPS](#testing-the-idsips)
-  - [Step 13 – Check Alerts (Before Test)](#step-13--check-alerts-before-test)
-  - [Step 14 – Run Nmap Scan from Kali Linux](#step-14--run-nmap-scan-from-kali-linux)
-  - [Step 15 – Verify Alerts Are Triggered](#step-15--verify-alerts-are-triggered)
-  - [Step 16 – Confirm IPS Block in Logs View](#step-16--confirm-ips-block-in-logs-view)
-- [Architecture Overview](#architecture-overview)
-- [Notes & Recommendations](#notes--recommendations)
+- [Results](#results)
 
 ---
 
 ## Overview
 
-This guide demonstrates how to deploy **Suricata 7.0** on pfSense to act as both an IDS (alert-only) and IPS (active blocking). The test scenario uses:
+This project covers:
 
-- **Kali Linux** on an external/WAN-side network as the attacker machine
-- **Ubuntu** on the internal/LAN network as the target
-- **pfSense** (192.168.47.10) as the firewall/IDS-IPS gateway
+- Installing Suricata via the pfSense Package Manager
+- Configuring WAN and LAN interfaces for monitoring
+- Enabling IPS blocking mode to automatically block offending hosts
+- Setting up threat intelligence rule sets (ETOpen, Snort GPLv2)
+- Verifying detection by running an Nmap scan from a Kali Linux machine on an external network
 
 ---
 
 ## Prerequisites
 
-- pfSense Community Edition installed and running
-- Admin access to the pfSense web interface
-- Internet connectivity from pfSense (to download rule sets)
-- Basic familiarity with networking concepts (WAN/LAN, IDS/IPS)
+- pfSense firewall (running as a VM or physical device)
+- Kali Linux machine on an **external** network segment
+- Ubuntu machine on an **internal/LAN** network segment
+- Internet access from pfSense to download rule sets
 
 ---
 
 ## Installation
 
-### Step 1 – Navigate to Package Manager
+### Step 1 — Install Suricata via Package Manager
 
-Go to **System → Package Manager** in the pfSense top navigation bar.
+Navigate to **System → Package Manager** in the pfSense web UI.
 
-![Step 1 – Package Manager](screenshots/01_installation.png)
+![Installation](screenshoots/1_installation.png)
 
-> Navigate to **System** in the top menu, then select **Package Manager** from the dropdown. You should see any already-installed packages listed here (e.g., `suricata`).
+Search for **Suricata** under Available Packages and install it.
+
+### Step 2 — Access the Suricata Service
+
+After installation, go to **Services → Suricata**.
+
+![Access Suricata](screenshoots/2_.png)
 
 ---
 
 ## Configuration
 
-### Step 2 – Access Suricata via Services
+### Step 3 — Add the WAN Interface
 
-Once Suricata is installed, access it through **Services → Suricata**.
+On the **Interfaces** tab, click **+ Add** to create a new interface instance.
 
-![Step 2 – Services > Suricata](screenshots/02_services_suricata.png)
+![Interfaces Tab](screenshoots/3_.png)
 
-> Click **Services** in the top navigation bar and select **Suricata** from the dropdown list to open the Suricata management dashboard.
+Enable Suricata inspection and select **WAN (em1)** as the interface.
 
----
+![WAN Interface Selection](screenshoots/4_after_selecting_the_interface_you_can_choose_the_settings_thatg_applies_to_your_orgaqnisation.png)
 
-### Step 3 – Add WAN Interface
+### Step 4 — Configure Alert and Block Settings (WAN)
 
-In the Suricata **Interfaces** tab, click the **+ Add** button to add a new interface.
+Scroll down to the **Alert and Block Settings** section:
 
-![Step 3 – Add Interface](screenshots/03_interfaces_add.png)
+1. Check **Block Offenders** to automatically block hosts that trigger a Suricata alert
+2. Set **IPS Mode** to `Legacy Mode`
+3. Set **Which IP to Block** to `SRC`
 
-> The Interface Settings Overview table will be empty initially. Click **+ Add** (highlighted in green, bottom right) to begin configuring your first interface.
+![WAN Block Settings](screenshoots/5_.png)
 
----
+Save the configuration.
 
-### Step 4 – Configure WAN General Settings
+![Save Settings](screenshoots/6_.png)
 
-Enable Suricata on the **WAN (em1)** interface.
+### Step 5 — Add the LAN Interface
 
-![Step 4 – WAN General Settings](screenshots/04_wan_general_settings.png)
+Back on the **Interfaces** tab, click **+ Add** again to add the LAN interface.
 
-| Setting | Value |
-|---|---|
-| **Enable** | ✅ Checked — enables Suricata inspection on this interface |
-| **Interface** | WAN (em1) |
-| **Description** | WAN |
+![Add LAN Interface](screenshoots/7_To_add_your_LAN_interface_too.png)
 
-> Select the interface that faces the internet (WAN). After selecting the interface, you can configure the settings that apply to your organisation's environment.
+Enable Suricata inspection and select **LAN (em0)** as the interface.
 
----
+![LAN Interface Selection](screenshoots/8_selecting_the_LAN_interface_.png)
 
-### Step 5 – Configure Alert & Block Settings (WAN)
+### Step 6 — Configure Alert and Block Settings (LAN)
 
-Scroll down on the WAN interface settings page to configure blocking behaviour.
+Apply the same blocking configuration for the LAN interface:
 
-![Step 5 – Alert and Block Settings](screenshots/05_alert_block_settings.png)
+1. **Block Offenders** — checked
+2. **IPS Mode** — `Legacy Mode`
+3. **Which IP to Block** — `SRC`
 
-| Setting | Value | Notes |
-|---|---|---|
-| **Block Offenders** | ✅ Checked | Automatically blocks hosts that generate a Suricata alert |
-| **IPS Mode** | Legacy Mode | Uses PCAP engine; suitable for most NIC drivers |
-| **Kill States** | ✅ Checked | Kills firewall states for the blocked IP |
-| **Which IP to Block** | SRC | Blocks the source IP; BOTH is also recommended |
+![LAN Block Settings](screenshoots/9_enable_blocking_and_block_the_source_from_gettiong_to_your_machine_and_click_on_save.png)
 
-> **Legacy Mode** inspects copies of packets via PCAP. Some packet leakage may occur before Suricata can determine if traffic should be blocked. **Inline Mode** offers zero leakage but requires compatible NIC drivers.
+### Step 7 — Configure Global Settings (Rule Sets)
 
----
+Go to **Global Settings** and select the rule sets to download:
 
-### Step 6 – Save the WAN Interface
+- ✅ **ETOpen Emerging Threats rules** — free open-source Suricata rules
+- ✅ **Snort GPLv2 Community rules** — Talos-certified, distributed free of charge
 
-Scroll to the bottom of the WAN interface settings page and click **Save**.
+![Global Settings Rule Sets](screenshoots/10_clcik_on_the_global_settings_an_select_the_option_that_apply_fro_you.png)
 
-![Step 6 – Save](screenshots/06_save.png)
+### Step 8 — Set Remove Blocked Hosts Interval
 
-> After configuring all settings for the WAN interface, click the **Save** button to apply the configuration. Any additional Suricata configuration parameters can be added in the Advanced Configuration Pass-Through field.
+Still under **Global Settings**, configure how long blocked hosts remain blocked. **15 minutes** is set here (1 hour is recommended for production environments).
 
----
+> ⚠️ This setting only applies in **Legacy Mode**. It is ignored in Inline IPS Mode.
 
-### Step 7 – Add LAN Interface
+![Blocked Hosts Interval](screenshoots/11_after_selecting_that_you_clcik_on_save.png)
 
-Back on the **Interfaces** tab, you will now see the WAN interface listed. Click **+ Add** again to add the LAN interface.
+Save the settings.
 
-![Step 7 – Add LAN Interface](screenshots/07_lan_add.png)
+### Step 9 — Update Rule Sets
 
-> The WAN interface now appears in the Interface Settings Overview table with **LEGACY MODE** blocking enabled. Click **+ Add** to add the LAN interface as well.
+Go to the **Updates** tab and click **Update** to download the latest rule signatures.
 
----
+![Update Rules](screenshoots/12_click_on_updates.png)
 
-### Step 8 – Configure LAN General Settings
-
-Enable Suricata on the **LAN (em0)** interface.
-
-![Step 8 – LAN General Settings](screenshots/08_lan_general_settings.png)
-
-| Setting | Value |
-|---|---|
-| **Enable** | ✅ Checked |
-| **Interface** | LAN (em0) |
-| **Description** | LAN |
-
-> Adding the LAN interface allows Suricata to monitor internal traffic and detect threats originating from within the network.
-
----
-
-### Step 9 – Configure Alert & Block Settings (LAN)
-
-Apply the same blocking configuration to the LAN interface.
-
-![Step 9 – LAN Block Settings](screenshots/09_lan_block_settings.png)
-
-| Setting | Value |
-|---|---|
-| **Block Offenders** | ✅ Checked |
-| **IPS Mode** | Legacy Mode |
-| **Kill States** | ✅ Checked |
-| **Which IP to Block** | SRC |
-
-> Enable blocking and block the source from getting to your machine, then click **Save**.
-
----
-
-### Step 10 – Configure Global Settings & Rules
-
-Navigate to **Global Settings** tab and select the rule sets to download.
-
-![Step 10 – Global Settings](screenshots/10_global_settings.png)
-
-| Rule Set | Status | Description |
-|---|---|---|
-| **ETOpen Emerging Threats** | ✅ Enabled | Free open-source Suricata rules (limited vs ETPro) |
-| **ETPro Emerging Threats** | ☐ Disabled | Paid; daily updates with extensive malware coverage |
-| **Snort Rules** | ☐ Disabled | Requires free Registered User or paid Subscriber account |
-| **Snort GPLv2 Community Rules** | ✅ Enabled | Free GPLv2 Talos-certified ruleset, updated daily |
-
-> Click on **Global Settings** and select the options that apply to your organisation. ETOpen and Snort GPLv2 Community Rules are free and provide solid baseline coverage.
-
----
-
-### Step 11 – Set Block Interval & Logging Options
-
-Scroll down in Global Settings to configure logging and block duration.
-
-![Step 11 – Block Interval](screenshots/11_block_interval.png)
-
-| Setting | Value | Notes |
-|---|---|---|
-| **Remove Blocked Hosts Interval** | 15 MINS | Duration hosts remain blocked (Legacy Mode only) |
-| **Log to System Log** | ✅ Checked | Copies Suricata messages to the firewall system log |
-| **Log Facility** | LOCAL1 | System log facility for reporting |
-| **Log Priority** | NOTICE | Log priority level |
-| **Keep Suricata Settings After Deinstall** | ✅ Checked | Settings persist through package removal |
-| **Clear Blocked Hosts After Deinstall** | ✅ Checked | Clears blocked hosts when package is removed |
-
-> After selecting your options, click **Save**. Note: the block interval setting is only applicable when using Legacy Mode blocking; it is ignored in Inline IPS Mode. In most cases, **1 hour** is a good choice for production.
-
----
-
-### Step 12 – Update Rule Sets
-
-Navigate to the **Updates** tab and click **Update** to download the latest rule signatures.
-
-![Step 12 – Updates](screenshots/12_updates.png)
-
-After a successful update, you will see MD5 hashes and timestamps for each enabled rule set:
-
-| Rule Set | MD5 Signature Date |
-|---|---|
-| Emerging Threats Open Rules | Sunday, 17-May-26 17:53:17 UTC |
-| Snort GPLv2 Community Rules | Sunday, 17-May-26 17:53:17 UTC |
-| Feodo Tracker Botnet C2 IP Rules | Sunday, 17-May-26 17:52:38 UTC |
-| ABUSE.ch SSL Blacklist Rules | Sunday, 17-May-26 18:04:35 UTC |
-
-> **Last Update:** May-17-2026 18:04 — **Result: success**. Click **Force** to force a re-download of all rules even if they appear current.
+The installed rule sets with their MD5 hashes will be listed once the update is complete.
 
 ---
 
 ## Testing the IDS/IPS
 
-### Step 13 – Check Alerts (Before Test)
+### Step 10 — Check Alerts Baseline
 
-Navigate to the **Alerts** tab to view the alert log. Before running any scans, the log should be empty.
+Navigate to **Alerts** to confirm no alerts exist before running the test.
 
-![Step 13 – Alerts Empty](screenshots/13_alerts_empty.png)
+![Alerts Baseline](screenshoots/13_checking_whether_we_have_any_alerts_hiting_IDS_and_currently_on_alert_so_we_would_run_nmap_scan_and_see_whether_the_settings_we_did_are_working.png)
 
-> The Alerts view shows the last 250 alert entries. The instance is set to **(WAN) WAN**. Currently in alert-only mode — we will run an Nmap scan to verify that the IDS/IPS detects it.
+### Step 11 — Run Nmap Scan from Kali Linux
 
----
-
-### Step 14 – Run Nmap Scan from Kali Linux
-
-From the **Kali Linux** machine (external network), run an aggressive Nmap scan against the Ubuntu target (internal network):
+From the Kali machine (external network), run an aggressive Nmap scan targeting the Ubuntu machine (internal network):
 
 ```bash
 nmap -A -T4 -Pn 192.168.47.128
 ```
 
-![Step 14 – Nmap Scan](screenshots/14_nmap_scan.png)
-
-| Flag | Meaning |
-|---|---|
-| `-A` | Aggressive scan (OS detection, version detection, script scanning, traceroute) |
-| `-T4` | Timing template 4 (fast scan) |
-| `-Pn` | Skip host discovery, treat all hosts as online |
-
-> Kali Linux is on the **external network** while Ubuntu is on the **internal network**. This simulates an external attacker probing an internal host through the pfSense firewall.
+![Nmap Scan from Kali](screenshoots/14_am_running_a_network_scan_from_my_kali_to_ubuntu_to_see_whether_the_IDS_will_detect_in_kali_is_on_an_external_network_while_ubuntu_is_on_an_internal_network.png)
 
 ---
 
-### Step 15 – Verify Alerts Are Triggered
+## Results
 
-After the Nmap scan completes, return to the **Alerts** tab in Suricata. You should now see multiple alerts:
+### IDS Detection — Alerts Generated
 
-![Step 15 – Alerts Triggered](screenshots/15_alerts_triggered.png)
+After the Nmap scan, Suricata immediately generated multiple alerts on the **WAN** interface. The alerts show:
 
-Example alerts generated:
+- **Source IP:** `192.168.127.130` (Kali — external)
+- **Destination IP:** `192.168.47.128` (Ubuntu — internal)
+- **Protocol:** ICMP
+- **Rule triggered:** `1:2200025` — *SURICATA ICMPv4 unknown code*
 
-| Date | Proto | Class | Src IP | Dst IP | GID:SID | Description |
-|---|---|---|---|---|---|---|
-| 05/18/2026 10:29:54 | ICMP | Generic Protocol Command Decode | 192.168.127.130 | 192.168.47.128 | 1:2200025 | SURICATA ICMPv4 unknown code |
-| 05/18/2026 10:29:54 | ICMP | Generic Protocol Command Decode | 192.168.127.130 | 192.168.47.128 | 1:2200025 | SURICATA ICMPv4 unknown code |
+![IDS Alerts](screenshoots/15_after_running_the_nmap_command_the_IDS_detects_it_these_are_the_alerts_we_are_getting.png)
 
-> The IDS successfully detects the Nmap scan traffic. Multiple alerts are raised from source IP **192.168.127.130** (Kali) targeting **192.168.47.128** (Ubuntu).
+### IPS Blocking — Host Blocked in Logs
 
----
-
-### Step 16 – Confirm IPS Block in Logs View
-
-Navigate to **Logs View**, select the **LAN** instance, and choose **block.log** to confirm the IPS is actively blocking the attacker IP.
-
-![Step 16 – Logs View Block](screenshots/16_logs_view_block.png)
-
-**Log entry example:**
-```
-05/18/2026-10:29:52.499506  [Block Src] [**] [1:2200025:2] SURICATA ICMPv4 unknown code
-[**] [Classification: Generic Protocol Command Decode] [Priority: 3]
-```
-
-> Navigate to **Logs View → (LAN) LAN → block.log**. The log confirms that the IPS has blocked the source IP from reaching the system again — until you allow it or when the configured block interval expires (15 minutes in this setup).
-
----
-
-## Architecture Overview
+The **IPS** also blocked the source IP, preventing further access. The `block.log` in **Logs View** confirms the block action:
 
 ```
-┌─────────────────────┐         ┌──────────────────────────────┐         ┌──────────────────┐
-│   Kali Linux        │         │        pfSense Firewall        │         │   Ubuntu Target  │
-│  (Attacker)         │  WAN    │  ┌──────────────────────────┐ │  LAN    │  (Internal Host) │
-│  192.168.127.130    │◄───────►│  │  Suricata IDS/IPS        │ │◄───────►│  192.168.47.128  │
-│  External Network   │         │  │  WAN (em1) + LAN (em0)   │ │         │  Internal Network│
-└─────────────────────┘         │  │  Legacy Mode Blocking    │ │         └──────────────────┘
-                                │  │  ETOpen + Snort Rules    │ │
-                                │  └──────────────────────────┘ │
-                                │         192.168.47.10          │
-                                └──────────────────────────────┘
+05/18/2026-10:29:52.499506  [Block Src] [**] [1:2200025:2] SURICATA ICMPv4 unknown code [**] [Classification: Generic Protocol Command Decode] [Priority: 3]
 ```
 
----
+The blocked host is prevented from reaching the system again until the block interval expires or an administrator manually allows the IP.
 
-## Notes & Recommendations
-
-- **IPS Mode:** Legacy Mode is the default and works with most NICs. Switch to **Inline Mode** for zero packet leakage if your NIC supports it (bnxt, cc, cxgbe, em, ena, ice, igb, ix, ixgbe, lem, re, vmx, vtnet).
-- **Which IP to Block:** `SRC` blocks the attacker's source IP. Setting this to **BOTH** (source and destination) is recommended for broader protection.
-- **Block Interval:** 15 minutes is suitable for testing. Consider increasing to **1 hour or more** in production environments.
-- **Rule Sets:** ETOpen + Snort GPLv2 Community Rules provide free, solid coverage. For enterprise environments, consider **ETPro** for daily threat intelligence updates.
-- **Pass Lists:** Configure Pass Lists to whitelist trusted IPs and prevent false positives from blocking legitimate traffic.
-- **Suppress Lists:** Use the Suppress tab to silence noisy rules that cause excessive false positives.
-- **Regular Updates:** Schedule automatic rule updates (daily recommended) via the Updates tab to stay current with emerging threats.
+![IPS Block Log](screenshoots/16_the_IPS_also_prevent_this_ip_from_reaching_this_system_againuntil_you_allow_or_when_you_give_it_a_specific_tikme.png)
 
 ---
 
-## License
+## Summary
 
-This project is for educational purposes. Suricata is open-source software licensed under the [GPLv2](https://suricata.io/). pfSense Community Edition is licensed under the [Apache 2.0 License](https://www.pfsense.org/).
+| Component | Role |
+|-----------|------|
+| pfSense + Suricata | Firewall with integrated IDS/IPS |
+| WAN Interface (em1) | Monitors inbound traffic from external network |
+| LAN Interface (em0) | Monitors internal network traffic |
+| ETOpen + Snort GPLv2 | Threat detection rule sets |
+| Legacy Mode (IPS) | Blocks offending source IPs automatically |
+| Kali Linux | Attacker machine (external network) |
+| Ubuntu | Target machine (internal network) |
+
+Suricata on pfSense provides a powerful, free solution for network intrusion detection and prevention in both home lab and enterprise environments.

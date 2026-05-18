@@ -50,7 +50,7 @@ Search for **Suricata** under Available Packages and install it.
 
 After installation, go to **Services → Suricata**.
 
-![Access Suricata](screenshoots/2_.png)
+![Access Suricata](screenshoots/2.png)
 
 ---
 

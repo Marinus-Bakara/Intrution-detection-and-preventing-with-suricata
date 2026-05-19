@@ -254,8 +254,8 @@ The moment the Nmap scan began sending packets, Suricata's rules matched the tra
 - **Date:** Exact timestamp of when the suspicious packet was detected
 - **Action:** The warning icon (⚠️) indicates an alert was raised
 - **Pri (Priority):** Priority 3 means medium severity. Priority 1 is the most critical
-- **Proto:** The network protocol involved — ICMP in this case (used by Nmap for host discovery)
-- **Class:** The category of the threat — "Generic Protocol Command Decode" means the packet violated expected protocol behavior
+- **Proto:** The network protocol involved ICMP in this case (used by Nmap for host discovery)
+- **Class:** The category of the threat "Generic Protocol Command Decode" means the packet violated expected protocol behavior
 - **Src / Dst:** Source and destination IP addresses
 - **SPort / DPort:** Source and destination port numbers
 - **GID:SID:** The unique identifier of the rule that fired. `1:2200025` means Group ID 1, Signature ID 2200025  this is a Suricata built-in rule for detecting malformed ICMP packets

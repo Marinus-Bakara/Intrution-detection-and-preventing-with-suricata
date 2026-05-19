@@ -92,7 +92,7 @@ Save the configuration.
 
 ![Save Settings](screenshots/6..png)
 
-**What is happening here?**
+**What is happening here**
 
 - **Block Offenders:** This is what turns Suricata from a passive IDS into an active IPS. When enabled, any IP address that triggers a Suricata alert is automatically added to a block list and prevented from communicating with your network. Without this, Suricata would only log and alert the attack would still reach its target.
 
@@ -102,9 +102,9 @@ Save the configuration.
   
   Legacy Mode is chosen here because it is the safest and most compatible option for a lab environment.
 
-- **Which IP to Block — SRC:** When a threat is detected, Suricata needs to know which IP address to block. The options are:
+- **Which IP to Block SRC:** When a threat is detected, Suricata needs to know which IP address to block. The options are:
   - **SRC (Source):** Block the IP address that sent the malicious traffic (the attacker). This is the most common choice.
-  - **DST (Destination):** Block the IP that received it (your own machine — not useful).
+  - **DST (Destination):** Block the IP that received it (your own machine not useful).
   - **BOTH:** Block both source and destination.
   
   Choosing `SRC` means the attacker's IP gets blocked, preventing any further communication from that address.
@@ -140,7 +140,7 @@ Apply the same blocking configuration for the LAN interface:
 <img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/9.enable%20blocking%20and%20block%20the%20source%20from%20gettiong%20to%20your%20machine%20and%20click%20on%20save.png" alt="Alt text" width="800">
 
 **What is happening here?**
-The same IPS settings applied to the WAN interface are now applied to the LAN interface. This ensures that if a threat is detected on internal traffic such as a compromised device on the LAN trying to attack other internal machines — the source of that threat is also automatically blocked. Consistent settings across both interfaces ensure there are no gaps in protection.
+The same IPS settings applied to the WAN interface are now applied to the LAN interface. This ensures that if a threat is detected on internal traffic such as a compromised device on the LAN trying to attack other internal machines the source of that threat is also automatically blocked. Consistent settings across both interfaces ensure there are no gaps in protection.
 
 ### Step 7.Configure Global Settings (Rule Sets)
 
@@ -226,10 +226,10 @@ nmap -A -T4 -Pn 192.168.47.128
 The flags used in this command mean:
 
 
-`-A`: Aggressive scan enables OS detection, version detection, script scanning, and traceroute all at once.
-`-T4` : Timing template 4 (Aggressive) speeds up the scan, sending packets faster than normal. This makes the scan more detectable by IDS systems.
-`-Pn` : Skip host discovery (ping) treats the target as online even if it doesn't respond to ping. Useful when ICMP is blocked.
-`192.168.47.128` : The IP address of the Ubuntu target machine on the internal network.
+-`-A`: Aggressive scan enables OS detection, version detection, script scanning, and traceroute all at once.
+-`-T4` : Timing template 4 (Aggressive) speeds up the scan, sending packets faster than normal. This makes the scan more detectable by IDS systems.
+-`-Pn` : Skip host discovery (ping) treats the target as online even if it doesn't respond to ping. Useful when ICMP is blocked.
+-`192.168.47.128` : The IP address of the Ubuntu target machine on the internal network.
 
 This scan generates a significant amount of unusual network traffic rapid port probing, OS fingerprinting packets, and ICMP probes all of which are patterns that Suricata's rules are designed to detect.
 
@@ -282,8 +282,8 @@ The **Logs View** shows the raw Suricata log file, specifically the `block.log`,
 |------|---------|
 | `05/18/2026-10:29:52.499506` | Exact date and time of the block event (including microseconds) |
 | `[Block Src]` | Confirms the **source IP** was blocked (matching our "Which IP to Block = SRC" setting) |
-| `[1:2200025:2]` | Rule that triggered the block — GID:SID:Revision |
-| `SURICATA ICMPv4 unknown code` | The specific rule description — an ICMP packet with an unknown/invalid code field was detected |
+| `[1:2200025:2]` | Rule that triggered the block GID:SID:Revision |
+| `SURICATA ICMPv4 unknown code` | The specific rule description an ICMP packet with an unknown/invalid code field was detected |
 | `Generic Protocol Command Decode` | The classification/category of the threat |
 | `Priority: 3` | Medium severity level |
 

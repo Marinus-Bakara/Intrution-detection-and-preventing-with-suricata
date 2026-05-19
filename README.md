@@ -1,52 +1,16 @@
 # Suricata IDS/IPS Setup on pfSense
 
-A comprehensive, step-by-step guide to installing and configuring **Suricata** as an Intrusion Detection System (IDS) and Intrusion Prevention System (IPS) on **pfSense**. This lab demonstrates how to detect and block network threats — including Nmap scans — from an external Kali Linux machine targeting an internal Ubuntu machine.
+A comprehensive, step-by-step guide to installing and configuring **Suricata** as an Intrusion Detection System (IDS) and Intrusion Prevention System (IPS) on **pfSense**. This lab demonstrates how to detect and block network threats — including unauthorized Nmap scans — from an external Kali Linux machine targeting an internal Ubuntu machine.
 
----
 
-## Table of Contents
 
-- [What is pfSense?](#what-is-pfsense)
-- [What is Suricata?](#what-is-suricata)
-- [What is an IDS vs IPS?](#what-is-an-ids-vs-ips)
-- [Lab Topology](#lab-topology)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Testing the IDS/IPS](#testing-the-idsips)
-- [Results](#results)
-- [Summary](#summary)
-
----
-
-## What is pfSense?
-
-**pfSense** is a free, open-source firewall and router software based on FreeBSD. It is deployed at the network perimeter — the boundary between your internal (trusted) network and the external (untrusted) network such as the internet. pfSense controls all traffic entering and leaving your network, and it can be extended with packages like Suricata to add advanced security capabilities such as intrusion detection and prevention.
-
-Think of pfSense as the security gate of your network. Everything that comes in or goes out must pass through it.
-
----
-
-## What is Suricata?
-
-**Suricata** is a high-performance, open-source network security engine developed by the Open Information Security Foundation (OISF). It can function as:
 
 - An **Intrusion Detection System (IDS)** — passively monitors network traffic and generates alerts when suspicious activity is detected, without blocking anything.
 - An **Intrusion Prevention System (IPS)** — actively monitors and **blocks** malicious traffic in real time before it reaches its destination.
-- A **Network Security Monitor (NSM)** — logs all network activity for forensic analysis.
+- A **Network Security Monitor** — logs all network activity for forensic analysis.
 
 Suricata uses **signature-based detection**, meaning it compares network traffic against a database of known attack patterns (rules). When traffic matches a rule, Suricata either alerts or blocks depending on how it is configured.
 
----
-
-## What is an IDS vs IPS?
-
-| Feature | IDS (Intrusion Detection System) | IPS (Intrusion Prevention System) |
-|--------|-----------------------------------|------------------------------------|
-| Role | Monitors and alerts | Monitors, alerts, and **blocks** |
-| Action on threat | Logs the event | Logs the event + drops/blocks the traffic |
-| Placement | Out-of-band (passively watches traffic) | Inline (sits in the traffic path) |
-| Risk | Cannot stop attacks on its own | Can accidentally block legitimate traffic (false positives) |
 
 In this lab, Suricata is configured as **both** — it detects threats (IDS) and automatically blocks the offending IP address (IPS).
 
@@ -54,15 +18,10 @@ In this lab, Suricata is configured as **both** — it detects threats (IDS) and
 
 ## Lab Topology
 
-```
-[ Kali Linux ]  ←→  [ pfSense WAN ] ←→ [ pfSense LAN ] ←→ [ Ubuntu ]
-  External                Firewall                           Internal
-  Attacker             (Suricata running)                    Target
-  192.168.127.130       192.168.47.10                      192.168.47.128
-```
+<img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/network%20diagram.png" alt="Alt text" width="800">
 
-- **Kali Linux** is on the **external/WAN** network — this simulates an attacker on the internet.
-- **Ubuntu** is on the **internal/LAN** network — this is the machine being protected.
+- **Kali Linux** is on the **external/WAN** network ,this simulates an attacker on the internet.
+- **Ubuntu** is on the **internal/LAN** network , this is the machine being protected.
 - **pfSense** sits in between, with Suricata inspecting all traffic passing through both the WAN and LAN interfaces.
 
 ---
@@ -84,7 +43,7 @@ Navigate to **System → Package Manager** in the pfSense web UI.
 
 ![Installation](screenshots/1.installation.png)
 
-**What is happening here?**
+**What is happening here**
 pfSense has a built-in package manager that allows you to install additional software directly from the web interface without needing to use the command line. Suricata is one of the available packages. When you install it, pfSense downloads and sets up Suricata automatically, integrating it into the firewall's services and web UI. Without this step, pfSense would only perform basic firewall filtering (blocking/allowing based on rules) but would have no ability to inspect the **content** of network traffic for attack patterns.
 
 ### Step 2 — Access the Suricata Service
@@ -94,7 +53,7 @@ After installation, go to **Services → Suricata**.
 ![Access Suricata](screenshots/2..png)
 
 **What is happening here?**
-Once installed, Suricata appears as a service under the **Services** menu. This is your central control panel for everything Suricata-related — adding interfaces to monitor, downloading rules, viewing alerts, managing blocked hosts, and reviewing logs. At this point Suricata is installed but not yet active because no interfaces have been configured yet.
+Once installed, Suricata appears as a service under the **Services** menu. This is your central control panel for everything Suricata related,adding interfaces to monitor, downloading rules, viewing alerts, managing blocked hosts, and reviewing logs. At this point Suricata is installed but not yet active because no interfaces have been configured yet.
 
 ---
 
@@ -112,7 +71,7 @@ Enable Suricata inspection and select **WAN (em1)** as the interface.
 
 
 
-**What is happening here?**
+**What is happening here**
 Suricata needs to be told **which network interface to monitor**. A network interface is the connection point between the firewall and a network — in this case, `em1` is the WAN (external) interface that connects pfSense to the outside world.
 
 By adding the WAN interface, you are telling Suricata to inspect all traffic arriving from the external network before it enters your internal network. This is the most critical monitoring point because it catches threats coming from outside before they can reach internal machines.
@@ -124,8 +83,8 @@ The `em1` refers to the physical or virtual network adapter name assigned by the
 Scroll down to the **Alert and Block Settings** section:
 
 1. Check **Block Offenders** to automatically block hosts that generate a Suricata alert
-2. Set **IPS Mode** to `Legacy Mode`
-3. Set **Which IP to Block** to `SRC`
+2. Set **IPS Mode** to `Legacy Mode` this mode the first malicious packet leaks into the network, before it is being blocked by the IPS.
+3. Set **Which IP to Block** to `SRC` this shows that when a malicious packet leaks into the network it should block the sources IP address thus where the packet is coming from.
 
 ![WAN Block Settings](screenshots/5..png)
 
@@ -135,11 +94,11 @@ Save the configuration.
 
 **What is happening here?**
 
-- **Block Offenders:** This is what turns Suricata from a passive IDS into an active IPS. When enabled, any IP address that triggers a Suricata alert is automatically added to a block list and prevented from communicating with your network. Without this, Suricata would only log and alert — the attack would still reach its target.
+- **Block Offenders:** This is what turns Suricata from a passive IDS into an active IPS. When enabled, any IP address that triggers a Suricata alert is automatically added to a block list and prevented from communicating with your network. Without this, Suricata would only log and alert the attack would still reach its target.
 
-- **IPS Mode — Legacy Mode:** There are two ways Suricata can intercept traffic:
+- **IPS Mode-Legacy Mode:** There are two ways Suricata can intercept traffic:
   - **Legacy Mode** uses the PCAP engine to make copies of packets as they pass through the interface and inspects those copies. Because it is inspecting copies (not the original packets), some traffic may "leak" through before Suricata can block it. It is compatible with all network drivers.
-  - **Inline Mode** places Suricata directly in the traffic path between the NIC and the OS, meaning packets are inspected before they are processed. No leakage occurs, but it requires specific network drivers (bnxt, cc, em, ena, igb, ix, etc.). Inline Mode is more secure but has stricter hardware requirements.
+  - And also we have inline as well**Inline Mode** places Suricata directly in the traffic path between the NIC and the OS, meaning packets are inspected before they are processed. No leakage occurs, but it requires specific network drivers .**Inline Mode is more secure but has stricter hardware requirements**.
   
   Legacy Mode is chosen here because it is the safest and most compatible option for a lab environment.
 
@@ -161,7 +120,7 @@ Enable Suricata inspection and select **LAN (em0)** as the interface.
 
 <img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/8.selecting%20the%20LAN%20interface%20.png" alt="Alt text" width="800">
 
-**What is happening here?**
+**What is happening here**
 In addition to monitoring the WAN (external) interface, it is important to also monitor the **LAN (internal)** interface. This provides a second layer of protection and serves a different but equally important purpose:
 
 - It can detect threats that originate **from inside** the network — for example, a compromised internal machine that is trying to communicate with a command-and-control server or attack other internal machines.
@@ -181,19 +140,19 @@ Apply the same blocking configuration for the LAN interface:
 <img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/9.enable%20blocking%20and%20block%20the%20source%20from%20gettiong%20to%20your%20machine%20and%20click%20on%20save.png" alt="Alt text" width="800">
 
 **What is happening here?**
-The same IPS settings applied to the WAN interface are now applied to the LAN interface. This ensures that if a threat is detected on internal traffic — such as a compromised device on the LAN trying to attack other internal machines — the source of that threat is also automatically blocked. Consistent settings across both interfaces ensure there are no gaps in protection.
+The same IPS settings applied to the WAN interface are now applied to the LAN interface. This ensures that if a threat is detected on internal traffic such as a compromised device on the LAN trying to attack other internal machines — the source of that threat is also automatically blocked. Consistent settings across both interfaces ensure there are no gaps in protection.
 
 ### Step 7 — Configure Global Settings (Rule Sets)
 
 Go to **Global Settings** and select the rule sets to download:
 
-- ✅ **ETOpen Emerging Threats rules** — free open-source Suricata rules
-- ✅ **Snort GPLv2 Community rules** — Talos-certified, distributed free of charge
+-  **ETOpen Emerging Threats rules** — free open-source Suricata rules
+- **Snort GPLv2 Community rules** — Talos-certified, distributed free of charge
 
 <img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/10.clcik%20on%20the%20global%20settings%20an%20select%20the%20option%20that%20apply%20fro%20you.png" alt="Alt text" width="800">
 
-**What is happening here?**
-Suricata by itself does not know what is malicious and what is normal traffic. It relies entirely on **rules** (also called signatures) to identify threats. Rules are essentially patterns that describe known attacks — for example, a rule might say "if an ICMP packet has this specific unusual code, it is suspicious."
+**What is happening here**
+Suricata by itself does not know what is malicious and what is normal traffic. It relies entirely on **rules** (also called signatures) to identify threats. Rules are essentially patterns that describe known attacks for example, a rule might say "if an ICMP packet has this specific unusual code, it is suspicious."
 
 Rule sets are maintained and updated by security organizations. The two selected here are:
 
@@ -207,11 +166,11 @@ Together, these two rule sets give Suricata a broad and regularly updated librar
 
 Still under **Global Settings**, configure how long blocked hosts remain blocked. **15 minutes** is set here.
 
-> ⚠️ This setting only applies in **Legacy Mode**. It is ignored in Inline IPS Mode.
+> This setting only applies in **Legacy Mode**. It is ignored in Inline IPS Mode.
 
 <img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/11.after%20selecting%20that%20you%20clcik%20on%20save.png" alt="Alt text" width="800">
 
-**What is happening here?**
+**What is happening here**
 When Suricata blocks an IP address, it does not block it forever by default. The **Remove Blocked Hosts Interval** defines how long a blocked IP stays on the block list before being automatically removed.
 
 - **15 minutes** means a blocked IP will be unblocked after 15 minutes and can attempt to connect again.
@@ -228,7 +187,7 @@ Go to the **Updates** tab and click **Update** to download the latest rule signa
 
 <img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/12.click%20on%20updates.png" alt="Alt text" width="800">
 
-**What is happening here?**
+**What is happening here**
 This step downloads the actual rule files from the internet based on the rule sets selected in Global Settings. Suricata cannot detect any threats until the rules are downloaded. The **Updates** tab shows:
 
 - **Installed Rule Set MD5 Signatures:** A fingerprint (hash) of each downloaded rule file. The MD5 hash is used to verify that the file downloaded correctly and has not been tampered with. If the hash changes on the next update, it means new rules have been added or existing ones modified.
@@ -248,8 +207,8 @@ Navigate to **Alerts** to confirm no alerts exist before running the test.
 
 <img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/13.checking%20whether%20we%20have%20any%20alerts%20hiting%20IDS%20and%20currently%20on%20alert%20so%20we%20would%20run%20nmap%20scan%20and%20see%20whether%20the%20settings%20we%20did%20are%20working.png" alt="Alt text" width="800">
 
-**What is happening here?**
-Before running any test, it is good practice to confirm the alerts log is clean — meaning no alerts have been triggered yet. This gives you a clean baseline so that when you run the Nmap scan, any new alerts that appear can be definitively attributed to your test. The **Alerts** tab shows a live log of all events detected by Suricata, including the date, action taken, protocol, source IP, destination IP, the rule that fired, and a description of the threat.
+**What is happening here**
+Before running any test, it is good practice to confirm the alerts log is clean  meaning no alerts have been triggered yet. This gives you a clean baseline so that when you run the Nmap scan, any new alerts that appear can be definitively attributed to your test. The **Alerts** tab shows a live log of all events detected by Suricata, including the date, action taken, protocol, source IP, destination IP, the rule that fired, and a description of the threat.
 
 ### Step 11 — Run Nmap Scan from Kali Linux
 
@@ -261,19 +220,18 @@ nmap -A -T4 -Pn 192.168.47.128
 
 <img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/14.am%20running%20a%20network%20scan%20from%20my%20kali%20to%20ubuntu%20to%20see%20whether%20the%20IDS%20will%20detect%20in%20kali%20is%20on%20an%20external%20network%20while%20ubuntu%20is%20on%20an%20internal%20network.png" alt="Alt text" width="800">
 
-**What is happening here?**
+**What is happening here**
 **Nmap** (Network Mapper) is a widely used open-source tool for network discovery and security auditing. Attackers commonly use it to scan a target network and discover open ports, running services, operating system versions, and potential vulnerabilities before launching an attack.
 
 The flags used in this command mean:
 
-| Flag | Meaning |
-|------|---------|
-| `-A` | Aggressive scan — enables OS detection, version detection, script scanning, and traceroute all at once |
-| `-T4` | Timing template 4 (Aggressive) — speeds up the scan, sending packets faster than normal. This makes the scan more detectable by IDS systems |
-| `-Pn` | Skip host discovery (ping) — treats the target as online even if it doesn't respond to ping. Useful when ICMP is blocked |
-| `192.168.47.128` | The IP address of the Ubuntu target machine on the internal network |
 
-This scan generates a significant amount of unusual network traffic — rapid port probing, OS fingerprinting packets, and ICMP probes — all of which are patterns that Suricata's rules are designed to detect.
+`-A`: Aggressive scan — enables OS detection, version detection, script scanning, and traceroute all at once.
+`-T4` : Timing template 4 (Aggressive) — speeds up the scan, sending packets faster than normal. This makes the scan more detectable by IDS systems.
+`-Pn` : Skip host discovery (ping) — treats the target as online even if it doesn't respond to ping. Useful when ICMP is blocked.
+`192.168.47.128` : The IP address of the Ubuntu target machine on the internal network.
+
+This scan generates a significant amount of unusual network traffic rapid port probing, OS fingerprinting packets, and ICMP probes all of which are patterns that Suricata's rules are designed to detect.
 
 ---
 
@@ -333,19 +291,6 @@ This confirms that Suricata not only **detected** the Nmap scan (IDS function) b
 
 ---
 
-## Summary
-
-| Component | Role |
-|-----------|------|
-| pfSense + Suricata | Firewall with integrated IDS/IPS |
-| WAN Interface (em1) | Monitors all inbound traffic from the external network |
-| LAN Interface (em0) | Monitors all internal network traffic |
-| ETOpen Emerging Threats | Free community rule set for broad threat detection |
-| Snort GPLv2 Community Rules | Talos-certified free rule set for additional coverage |
-| Legacy Mode (IPS) | Blocks offending source IPs using PCAP-based inspection |
-| Remove Blocked Hosts Interval | Automatically unblocks IPs after a set time (15 mins here) |
-| Kali Linux (`192.168.127.130`) | Attacker machine on the external/WAN network |
-| Ubuntu (`192.168.47.128`) | Target machine on the internal/LAN network |
 
 ### Key Takeaways
 

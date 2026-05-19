@@ -108,7 +108,7 @@ On the **Interfaces** tab, click **+ Add** to create a new interface instance.
 
 Enable Suricata inspection and select **WAN (em1)** as the interface.
 
-![[WAN Interface Selection]()
+<img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/4.after%20selecting%20the%20interface%20you%20can%20choose%20the%20settings%20thatg%20applies%20to%20your%20orgaqnisation.png" alt="Alt text" width="800">
 
 
 
@@ -154,12 +154,12 @@ Save the configuration.
 
 Back on the **Interfaces** tab, click **+ Add** again to add the LAN interface.
 
-![Add LAN Interface](screenshots/7.To add your LAN interface too.png)
+<img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/7.To%20add%20your%20LAN%20interface%20too.png" alt="Alt text" width="800">
 
 
 Enable Suricata inspection and select **LAN (em0)** as the interface.
 
-![LAN Interface Selection](screenshots/8.selecting the LAN interface .png)
+<img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/8.selecting%20the%20LAN%20interface%20.png" alt="Alt text" width="800">
 
 **What is happening here?**
 In addition to monitoring the WAN (external) interface, it is important to also monitor the **LAN (internal)** interface. This provides a second layer of protection and serves a different but equally important purpose:
@@ -178,7 +178,7 @@ Apply the same blocking configuration for the LAN interface:
 2. **IPS Mode** — `Legacy Mode`
 3. **Which IP to Block** — `SRC`
 
-![LAN Block Settings](screenshots/9.enable blocking and block the source from gettiong to your machine and click on save.png)
+<img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/9.enable%20blocking%20and%20block%20the%20source%20from%20gettiong%20to%20your%20machine%20and%20click%20on%20save.png" alt="Alt text" width="800">
 
 **What is happening here?**
 The same IPS settings applied to the WAN interface are now applied to the LAN interface. This ensures that if a threat is detected on internal traffic — such as a compromised device on the LAN trying to attack other internal machines — the source of that threat is also automatically blocked. Consistent settings across both interfaces ensure there are no gaps in protection.
@@ -190,7 +190,7 @@ Go to **Global Settings** and select the rule sets to download:
 - ✅ **ETOpen Emerging Threats rules** — free open-source Suricata rules
 - ✅ **Snort GPLv2 Community rules** — Talos-certified, distributed free of charge
 
-![Global Settings Rule Sets](screenshots/10.clcik on the global settings an select the option that apply fro you.png)
+<img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/10.clcik%20on%20the%20global%20settings%20an%20select%20the%20option%20that%20apply%20fro%20you.png" alt="Alt text" width="800">
 
 **What is happening here?**
 Suricata by itself does not know what is malicious and what is normal traffic. It relies entirely on **rules** (also called signatures) to identify threats. Rules are essentially patterns that describe known attacks — for example, a rule might say "if an ICMP packet has this specific unusual code, it is suspicious."
@@ -209,7 +209,7 @@ Still under **Global Settings**, configure how long blocked hosts remain blocked
 
 > ⚠️ This setting only applies in **Legacy Mode**. It is ignored in Inline IPS Mode.
 
-![Blocked Hosts Interval](screenshots/11.after selecting that you clcik_on save.png)
+<img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/11.after%20selecting%20that%20you%20clcik%20on%20save.png" alt="Alt text" width="800">
 
 **What is happening here?**
 When Suricata blocks an IP address, it does not block it forever by default. The **Remove Blocked Hosts Interval** defines how long a blocked IP stays on the block list before being automatically removed.
@@ -226,7 +226,7 @@ Save the settings after configuring this.
 
 Go to the **Updates** tab and click **Update** to download the latest rule signatures.
 
-![Update Rules](screenshots/12.click on updates.png)
+<img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/12.click%20on%20updates.png" alt="Alt text" width="800">
 
 **What is happening here?**
 This step downloads the actual rule files from the internet based on the rule sets selected in Global Settings. Suricata cannot detect any threats until the rules are downloaded. The **Updates** tab shows:
@@ -246,7 +246,7 @@ It is important to keep rules updated regularly (daily or weekly) because new at
 
 Navigate to **Alerts** to confirm no alerts exist before running the test.
 
-![Alerts Baseline](screenshots/13.checking whether we have any alerts hiting IDS and currently on alert so we would run nmap scan and see whether the settings we did are working.png)
+<img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/13.checking%20whether%20we%20have%20any%20alerts%20hiting%20IDS%20and%20currently%20on%20alert%20so%20we%20would%20run%20nmap%20scan%20and%20see%20whether%20the%20settings%20we%20did%20are%20working.png" alt="Alt text" width="800">
 
 **What is happening here?**
 Before running any test, it is good practice to confirm the alerts log is clean — meaning no alerts have been triggered yet. This gives you a clean baseline so that when you run the Nmap scan, any new alerts that appear can be definitively attributed to your test. The **Alerts** tab shows a live log of all events detected by Suricata, including the date, action taken, protocol, source IP, destination IP, the rule that fired, and a description of the threat.
@@ -259,7 +259,7 @@ From the Kali machine (external network), run an aggressive Nmap scan targeting 
 nmap -A -T4 -Pn 192.168.47.128
 ```
 
-![Nmap Scan from Kali](screenshots/14.am running a network scan from my kali to ubuntu to see whether the IDS will detect in kali is on an external network while ubuntu is on an internal network.png)
+<img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/14.am%20running%20a%20network%20scan%20from%20my%20kali%20to%20ubuntu%20to%20see%20whether%20the%20IDS%20will%20detect%20in%20kali%20is%20on%20an%20external%20network%20while%20ubuntu%20is%20on%20an%20internal%20network.png" alt="Alt text" width="800">
 
 **What is happening here?**
 **Nmap** (Network Mapper) is a widely used open-source tool for network discovery and security auditing. Attackers commonly use it to scan a target network and discover open ports, running services, operating system versions, and potential vulnerabilities before launching an attack.
@@ -288,7 +288,7 @@ After the Nmap scan, Suricata immediately generated multiple alerts on the **WAN
 - **Protocol:** ICMP
 - **Rule triggered:** `1:2200025` — *SURICATA ICMPv4 unknown code*
 
-![IDS Alerts](screenshots/15.after running the nmap command the IDS detects it these are the alerts we are getting.png)
+<img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/15.after%20running%20the%20nmap%20command%20the%20IDS%20detects%20it%20these%20are%20the%20alerts%20we%20are%20getting.png" alt="Alt text" width="800">
 
 **What is happening here?**
 The moment the Nmap scan began sending packets, Suricata's rules matched the traffic patterns and generated alerts. Each row in the alerts table represents a single detection event. The columns tell you:
@@ -315,7 +315,7 @@ The **IPS** also blocked the source IP, preventing further access. The `block.lo
 
 The blocked host is prevented from reaching the system again until the block interval expires or an administrator manually allows the IP.
 
-![IPS Block Log](screenshots/16.the IPS also prevent this ip from reaching this system againuntil you allow or when you give it a specific tik.png)
+<img src="https://github.com/Marinus-Bakara/Intrution-detection-and-preventing-with-suricata/blob/main/screenshots/16.the%20IPS%20also%20prevent%20this%20ip%20from%20reaching%20this%20system%20againuntil%20you%20allow%20or%20when%20you%20give%20it%20a%20specific%20tikme.png" alt="Alt text" width="800">
 
 **What is happening here?**
 The **Logs View** shows the raw Suricata log file, specifically the `block.log`, which records every blocking action taken. Breaking down the log entry:
